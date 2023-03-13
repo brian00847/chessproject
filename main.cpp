@@ -21,6 +21,7 @@ struct Position
    : row(r), col(c) {}
 };
 
+typedef std::vector<Position> Positions;
 
 
 
@@ -32,6 +33,7 @@ PieceID getPieceID()
    return id++;
 
 }
+class ChessBoard;
 class ChessPiece
 {
 
@@ -73,6 +75,12 @@ class ChessPiece
       case PieceType::Pawn: return "Pawn";
       }
 
+   }
+
+   virtual Positions getValidMoves(ChessBoard* brd) const
+   {
+      Positions ret;
+      return ret;
    }
 
    QString pieceDescription()
@@ -118,51 +126,208 @@ class KingPiece : public ChessPiece
 
 class QueenPiece : public ChessPiece
 {
-   
    public:
-   virtual PieceType getPieceType() const override { return ChessPiece::PieceType::King; }
+   virtual PieceType getPieceType() const override { return ChessPiece::PieceType::Queen; }
 
    QueenPiece(PieceColor color_, Position pos_)
    : ChessPiece(color_, pos_)
    {}
+
+   //QueenPiece
+   virtual Positions getValidMoves(ChessBoard* brd) const override
+   {
+      Positions ret;
+      //Check diagonals
+         //Go up left until find a piece
+      int irow = this->pos.row - 1;
+      int icol = this->pos.col - 1;
+      //while ( brd->isValidPos(irow, icol) )
+      {
+         irow--;
+         icol--;
+
+      }
+
+      //Check straight
+      return ret;
+   }
 };
 
+class BishopPiece : public ChessPiece
+{
+   public:
+   virtual PieceType getPieceType() const override { return ChessPiece::PieceType::Bishop; }
+
+   BishopPiece(PieceColor color_, Position pos_)
+   : ChessPiece(color_, pos_)
+   {}
+};
+
+class KnightPiece : public ChessPiece
+{
+   public:
+   virtual PieceType getPieceType() const override { return ChessPiece::PieceType::Knight; }
+
+   KnightPiece(PieceColor color_, Position pos_)
+   : ChessPiece(color_, pos_)
+   {}
+};
+
+class RookPiece : public ChessPiece
+{
+   public:
+   virtual PieceType getPieceType() const override { return ChessPiece::PieceType::Rook; }
+
+   RookPiece(PieceColor color_, Position pos_)
+   : ChessPiece(color_, pos_)
+   {}
+};
+
+class PawnPiece : public ChessPiece
+{
+   public:
+   virtual PieceType getPieceType() const override { return ChessPiece::PieceType::Pawn; }
+
+   PawnPiece(PieceColor color_, Position pos_)
+   : ChessPiece(color_, pos_)
+   {}
+};
+
+struct ChessBoard
+{
+
+   //2d array;
+   std::vector<std::vector<PiecePtr>> boardSquares;
+   
+   void addPiece(PiecePtr piece)
+   {
+      if ( ! piece ) return;
+      if ( piece->pos.row < 0 || piece->pos.row >= n_rows ) return;
+      if ( piece->pos.col < 0 || piece->pos.col >= n_cols ) return;
+      boardSquares[piece->pos.row][piece->pos.col] = piece;
+   }
+
+   bool movePiece(PiecePtr piece, int dstRow, int dstCol)
+   {
+      //Check if destination is valid.
+      return false;
+   }
+
+   const int n_rows = 8;
+   const int n_cols = 8;
+   ChessBoard()
+   {
+      boardSquares.resize(n_rows);
+      for ( int irow = 0; irow < n_rows; ++irow )
+      {
+         boardSquares[irow].resize(n_cols);
+      }
+   }
+
+   bool isValidPos(const int row, const int col)
+   {
+      if ( row >= 0 && row < n_rows &&
+           col >= 0 && col < n_cols )
+         return true;
+      return false;
+   }
+
+   PiecePtr getPiece(const int row, const int col) 
+   {
+      if ( ! isValidPos(row, col) )
+         return PiecePtr();
+
+      PiecePtr piece;
+      return piece;
+
+   }
+
+   PiecePtrList getPiecesInPlay()
+   {
+      PiecePtrList ret;
+      for ( int irow = 0; irow < n_rows; ++irow )
+      {
+         for ( int icol = 0; icol < n_cols; ++icol )
+         {
+            PiecePtr piece =  boardSquares[irow][icol];
+            if ( piece )
+            {
+               ret.push_back(piece);
+            }
+         }
+      }
+      return ret;
+   }
+};
 
 class ChessBoardEngine
 {
-   PiecePtrList piecesInPlay;
+   //PiecePtrList piecesInPlay;
    PiecePtrList piecesCaptured;
+   ChessBoard chessBoard;
    public:
       PiecePtrList getAllPieces()
       {
-         return piecesInPlay;
+         return chessBoard.getPiecesInPlay();
       }
 
-      PiecePtrList getPieces(ChessPiece::PieceType pieceType);
-      //PiecePtrList getWhitePieces();
-      //PiecePtrList getBlackPieces();
+      //PiecePtrList getPieces(ChessPiece::PieceType pieceType);
+
+      PiecePtrList getPiecesByColor(const ChessPiece::PieceColor color)
+      {
+         
+         auto allPieces = this->getAllPieces();
+         PiecePtrList pieces;
+
+         auto lam1 = [&pieces, color] (PiecePtr piece) {
+            if ( piece->color == color )
+               pieces.push_back(piece);
+
+         };
+         std::for_each(allPieces.begin(), allPieces.end(), lam1);
+         return pieces;
+      }
+
+      void _init1(
+         const ChessPiece::PieceColor color,
+         const int pawnRow,
+         const int pieceRow)
+      {
+         chessBoard.addPiece(std::make_shared<RookPiece>(color, Position(pieceRow, 0)));
+         chessBoard.addPiece(std::make_shared<KnightPiece>(color, Position(pieceRow, 1)));
+         chessBoard.addPiece(std::make_shared<BishopPiece>(color, Position(pieceRow, 2)));
+         chessBoard.addPiece(std::make_shared<BishopPiece>(color, Position(pieceRow, 5)));
+         chessBoard.addPiece(std::make_shared<KnightPiece>(color, Position(pieceRow, 6)));
+         chessBoard.addPiece(std::make_shared<RookPiece>(color, Position(pieceRow, 7)));
+
+         for( int i = 0; i < 8; ++i )
+         {
+            chessBoard.addPiece(std::make_shared<PawnPiece>(color, Position(pawnRow, i)));
+
+         }
+      }
 
       //Initialize Board to normal positions.
       void init()
       {
-         //Assume White on top. Black on Bottom;
-
          //Create Black King
-         ChessPiece::PieceColor color = ChessPiece::PieceColor::Black;
-         //Position pos
-         //Position pos = {0, 0};
-         //pos.row = 0;
-         //pos.col = 0;
-         //Position pos1 = {1, 1};
-         //PiecePtr bKing = std::make_shared<KingPiece>(ChessPiece::PieceColor::Black, pos);
-         PiecePtr bKing = std::make_shared<KingPiece>(ChessPiece::PieceColor::Black, Position(7, 3));
-         piecesInPlay.push_back(bKing);
+         const ChessPiece::PieceColor color = ChessPiece::PieceColor::Black;
+         const int pawnRow = 6;
+         const int pieceRow = 7;
 
+         _init1(ChessPiece::PieceColor::Black, 6, 7);
+         _init1(ChessPiece::PieceColor::White, 1, 0);
+
+         //Create Queen and King - Black 
+         chessBoard.addPiece( std::make_shared<KingPiece>(ChessPiece::PieceColor::Black, Position(7, 3)));
+         chessBoard.addPiece( std::make_shared<QueenPiece>(ChessPiece::PieceColor::Black, Position(7, 4)));
+
+         //Create Queen and King - White
+         chessBoard.addPiece( std::make_shared<KingPiece>(ChessPiece::PieceColor::White, Position(0, 3)));
+         chessBoard.addPiece( std::make_shared<QueenPiece>(ChessPiece::PieceColor::White, Position(0, 4)));
       }
 
       //TODO: add ability to create custom setups
-
-
 };
 
 typedef std::shared_ptr<ChessBoardEngine> ChessBoardEnginePtr;
