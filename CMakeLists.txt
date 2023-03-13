@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(MyQtProject)
+# Set C++11 as the default standard
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+project(myQtProject)
 
 # Set the minimum required version of Qt
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets
@@ -23,8 +27,11 @@ set(SOURCES
 #)
 
 # Tell CMake to create an executable from the source files
-add_executable(MyQtProject ${SOURCES} ${HEADERS} ${RESOURCES})
+add_executable(myQtProject ${SOURCES} ${HEADERS} ${RESOURCES})
 
 # Link the executable to the Qt libraries
-target_link_libraries(MyQtProject Qt5::Core Qt5::Gui Qt5::Widgets)
+target_link_libraries(myQtProject Qt5::Core Qt5::Gui Qt5::Widgets)
+
+
+
 
