@@ -13,6 +13,8 @@ PATHS /opt/homebrew/opt/qt5/ )
 # Set the source files for the project
 set(SOURCES
     main.cpp
+    ChessBoard.cpp
+    Piece.cpp
     #mymainwindow.cpp
 )
 
